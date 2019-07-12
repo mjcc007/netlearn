@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <windows.h>
 #include <WinSock2.h>
+#include <thread> // cpp 11 才加入到cpp标准库
+
 /*
 #pragma comment(lib, "ws2_32.lib")
 **/
@@ -123,6 +125,38 @@ int processor(SOCKET active_sock) {
 	}
 	return 0;
 }
+bool g_bRun = true;
+void cmd_thread(SOCKET sock) 
+{
+	while (g_bRun)
+	{
+		char cmdBuf[256] = {};
+		scanf("%s", cmdBuf);
+		if (0 == strcmp(cmdBuf, "exit"))
+		{
+			g_bRun = false;
+			printf("exit\r\n");
+		}
+		else if (0 == strcmp(cmdBuf, "login"))
+		{
+			Login login = {};
+			strcpy(login.userName, "mjcc");
+			strcpy(login.passWord, "123");
+			send(sock, (char *)&login, sizeof(Login), 0);
+
+		}
+		else if (0 == strcmp(cmdBuf, "logout"))
+		{
+			Logout logout = {};
+			strcpy(logout.userName, "mjcc");
+			send(sock, (char *)&logout, sizeof(Logout), 0);
+		}
+		else
+		{
+			printf("not support cmd\r\n");
+		}
+	}
+}
 
 int main(int argc, char *argv[])
 {
@@ -147,8 +181,13 @@ int main(int argc, char *argv[])
 	}
 	printf("connect success!\r\n");
 
+	std::thread cmd_thread(cmd_thread, _sock);
+	cmd_thread.detach();
+	printf("start cmd thread!\r\n");
+
+
 	DataHeader dh = {};
-	while (true) 
+	while (g_bRun)
 	{
 
 		fd_set fdReads;
@@ -170,12 +209,12 @@ int main(int argc, char *argv[])
 				break;
 			}
 		}
-		printf("Free time! I can do the other task!\r\n");
+		// printf("Free time! I can do the other task!\r\n");
 
-		Login login = {};
-		strcpy(login.userName, "mjcc");
-		strcpy(login.passWord, "123");
-		send(_sock, (char *)&login, sizeof(Login), 0);
+		// Login login = {};
+		// strcpy(login.userName, "mjcc");
+		// strcpy(login.passWord, "123");
+		// send(_sock, (char *)&login, sizeof(Login), 0);
 		// Sleep(1000);
 	}
 

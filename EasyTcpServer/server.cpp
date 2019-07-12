@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		printf("Free time! I can do the other task!\r\n");
+		// printf("Free time! I can do the other task!\r\n");
 
 	}
 	for (size_t i = g_clients.size() - 1; i >= 0; i--)
